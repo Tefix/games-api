@@ -2,6 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const swaggerUi = require('swagger-ui-express')
 const swaggerDocument = require('./docs/swagger.json')
+const auth = require('./auth')
 
 const app = express()
 const port = process.env.PORT || 8080
@@ -42,8 +43,8 @@ app.get('/games/:id', (req, res) => {
     res.send(game)
 })
 
-// POST /games - adds a new game
-app.post('/games', (req, res) => {
+// POST /games - any authenticated user can add a game
+app.post('/games', auth.authenticate, (req, res) => {
     const { name, price } = req.body || {}
 
     if (!name || price === undefined || price === null) {
@@ -67,8 +68,8 @@ app.post('/games', (req, res) => {
         .send(createdGame)
 })
 
-// PUT /games/:id - updates a game
-app.put('/games/:id', (req, res) => {
+// PUT /games/:id - admin only
+app.put('/games/:id', auth.requireAdmin, (req, res) => {
     const id = parseInt(req.params.id, 10)
     if (isNaN(id)) {
         return res.status(400).send({ error: "Invalid ID format" })
@@ -100,8 +101,8 @@ app.put('/games/:id', (req, res) => {
     res.send(game)
 })
 
-// DELETE /games/:id - deletes a game
-app.delete('/games/:id', (req, res) => {
+// DELETE /games/:id - admin only
+app.delete('/games/:id', auth.requireAdmin, (req, res) => {
     const id = parseInt(req.params.id, 10)
     if (isNaN(id)) {
         return res.status(400).send({ error: "Invalid ID format" })
@@ -113,6 +114,100 @@ app.delete('/games/:id', (req, res) => {
     }
 
     games.splice(index, 1)
+    res.status(204).send()
+})
+
+auth.seedAdmin()
+
+const validCredentials = (username, password) =>
+    typeof username === 'string' && typeof password === 'string' &&
+    /^[A-Za-z0-9_.-]{3,30}$/.test(username.trim()) && password.length >= 8 && password.length <= 100
+
+// POST /auth/register - public sign-up, always creates a regular user
+app.post('/auth/register', (req, res) => {
+    const { username, password } = req.body || {}
+
+    if (!username || !password) {
+        return res.status(400).send({ error: "One or more required fields are missing" })
+    }
+    if (!validCredentials(username, password)) {
+        return res.status(400).send({ error: "Invalid username (3-30 letters, digits, _ . -) or password (8-100 characters)" })
+    }
+    if (auth.findByUsername(username.trim())) {
+        return res.status(409).send({ error: "User with the same username already exists" })
+    }
+
+    res.status(201).send(auth.publicUser(auth.createUser(username.trim(), password)))
+})
+
+// POST /auth/login - returns a bearer token
+app.post('/auth/login', (req, res) => {
+    const { username, password } = req.body || {}
+
+    if (typeof username !== 'string' || typeof password !== 'string') {
+        return res.status(400).send({ error: "One or more required fields are missing" })
+    }
+
+    const user = auth.findByUsername(username.trim())
+    if (!user || !auth.verifyPassword(password, user.passwordHash)) {
+        return res.status(401).send({ error: "Invalid username or password" })
+    }
+
+    res.send({ token: auth.createSession(user.id), user: auth.publicUser(user) })
+})
+
+// POST /auth/logout - invalidates the current token
+app.post('/auth/logout', auth.authenticate, (req, res) => {
+    auth.sessions.delete(req.token)
+    res.status(204).send()
+})
+
+// GET /users - admin only
+app.get('/users', ...auth.requireAdmin, (req, res) => {
+    res.send(auth.users.map(auth.publicUser))
+})
+
+// PUT /users/:id/role - admin only, changes the role of a user
+app.put('/users/:id/role', ...auth.requireAdmin, (req, res) => {
+    const id = parseInt(req.params.id, 10)
+    if (isNaN(id)) {
+        return res.status(400).send({ error: "Invalid ID format" })
+    }
+
+    const user = auth.users.find(u => u.id === id)
+    if (!user) {
+        return res.status(404).send({ error: "User not found" })
+    }
+
+    const { role } = req.body || {}
+    if (role !== 'user' && role !== 'admin') {
+        return res.status(400).send({ error: "Role must be 'user' or 'admin'" })
+    }
+    if (user.id === req.user.id && role !== 'admin') {
+        return res.status(400).send({ error: "You cannot remove your own admin role" })
+    }
+
+    user.role = role
+    res.send(auth.publicUser(user))
+})
+
+// DELETE /users/:id - admin only
+app.delete('/users/:id', ...auth.requireAdmin, (req, res) => {
+    const id = parseInt(req.params.id, 10)
+    if (isNaN(id)) {
+        return res.status(400).send({ error: "Invalid ID format" })
+    }
+
+    const index = auth.users.findIndex(u => u.id === id)
+    if (index === -1) {
+        return res.status(404).send({ error: "User not found" })
+    }
+    if (id === req.user.id) {
+        return res.status(400).send({ error: "You cannot delete your own account" })
+    }
+
+    auth.users.splice(index, 1)
+    auth.dropSessionsOf(id)
     res.status(204).send()
 })
 
