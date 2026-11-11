@@ -75,17 +75,20 @@ const dropSessionsOf = (userId) => {
     }
 }
 
-// Creates the first admin from environment variables (no credentials in code)
-const seedAdmin = () => {
-    const { ADMIN_USERNAME, ADMIN_PASSWORD } = process.env
+// Creates the demo accounts from environment variables (no credentials in code)
+const seedUsers = () => {
+    const { ADMIN_USERNAME, ADMIN_PASSWORD, USER_USERNAME, USER_PASSWORD } = process.env
     if (ADMIN_USERNAME && ADMIN_PASSWORD) {
         createUser(ADMIN_USERNAME, ADMIN_PASSWORD, 'admin')
     } else {
         console.warn('ADMIN_USERNAME / ADMIN_PASSWORD are not set: no admin account was created')
     }
+    if (USER_USERNAME && USER_PASSWORD) {
+        createUser(USER_USERNAME, USER_PASSWORD, 'user')
+    }
 }
 
 module.exports = {
     users, createUser, findByUsername, publicUser, verifyPassword,
-    createSession, sessions, authenticate, requireAdmin, dropSessionsOf, seedAdmin
+    createSession, sessions, authenticate, requireAdmin, dropSessionsOf, seedUsers
 }
