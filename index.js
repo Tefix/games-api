@@ -7,6 +7,8 @@ const app = express()
 const port = process.env.PORT || 8080
 
 app.use(express.json())
+const getBaseUrl = (req) => req.protocol + '://' + req.get('host')
+
 const games = [
     { id: 1, name: "Witcher 3", price: 29.99 },
     { id: 2, name: "Cyberpunk 2077", price: 59.99 },
@@ -17,6 +19,8 @@ const games = [
     { id: 7, name: "Valorant", price: 0 },
     { id: 8, name: "Forza Horizon 5", price: 59.99 }
 ]
+
+let nextId = Math.max(...games.map(g => g.id)) + 1
 
 // GET /games - public, returns all games
 app.get('/games', (req, res) => {
@@ -36,6 +40,31 @@ app.get('/games/:id', (req, res) => {
     }
 
     res.send(game)
+})
+
+// POST /games - adds a new game
+app.post('/games', (req, res) => {
+    const { name, price } = req.body || {}
+
+    if (!name || price === undefined || price === null) {
+        return res.status(400).send({ error: "One or more required fields are missing" })
+    }
+
+    if (typeof name !== 'string' || !name.trim() || typeof price !== 'number' || isNaN(price) || price < 0) {
+        return res.status(400).send({ error: "Invalid game parameter values" })
+    }
+
+    const gameExists = games.some(g => g.name.toLowerCase() === name.trim().toLowerCase())
+    if (gameExists) {
+        return res.status(409).send({ error: "Game with the same title already exists" })
+    }
+
+    const createdGame = { id: nextId++, name: name.trim(), price }
+    games.push(createdGame)
+
+    res.status(201)
+        .location(`${getBaseUrl(req)}/games/${createdGame.id}`)
+        .send(createdGame)
 })
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
