@@ -117,7 +117,7 @@ app.delete('/games/:id', auth.requireAdmin, (req, res) => {
     res.status(204).send()
 })
 
-auth.seedAdmin()
+auth.seedUsers()
 
 const validCredentials = (username, password) =>
     typeof username === 'string' && typeof password === 'string' &&

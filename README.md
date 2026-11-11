@@ -24,14 +24,21 @@ Register with `POST /auth/register`, then log in with `POST /auth/login` to get 
 and send it as `Authorization: Bearer <token>`. Passwords are hashed with scrypt and tokens are random
 values generated with Node's built-in `crypto`, so no extra dependencies are needed.
 
-The first admin is created at startup from `ADMIN_USERNAME` and `ADMIN_PASSWORD` in `.env`.
+Two demo accounts are created at startup from `.env` (copied from `.env.example`):
+
+| Role | Username | Password |
+|---|---|---|
+| admin | `admin` | `Adm1n-Games-2026` |
+| user | `user` | `Us3r-Games-2026` |
+
+> This is a study project, so the demo credentials are published here on purpose. Never do this in a real project.
 
 ## Getting started
 ```bash
 git clone https://github.com/Tefix/games-api.git
 cd games-api
 npm install
-cp .env.example .env   # then set ADMIN_PASSWORD
+cp .env.example .env
 npm start
 ```
 
