@@ -155,6 +155,63 @@
             }
           }
         }
+      },
+      "put": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Update a game",
+        "description": "Replaces name and price of a game. Game titles must be unique (case-insensitive).",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Game ID",
+            "example": 1
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GameInput"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated game",
+            "schema": {
+              "$ref": "#/definitions/Game"
+            }
+          },
+          "400": {
+            "description": "Invalid ID, missing fields or invalid values",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Game not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "409": {
+            "description": "Game with the same title already exists",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
       }
     }
   },
