@@ -118,6 +118,43 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Delete a game",
+        "description": "Deletes a game by its ID.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Game ID",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Game deleted"
+          },
+          "400": {
+            "description": "Invalid ID format",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Game not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
       }
     }
   },

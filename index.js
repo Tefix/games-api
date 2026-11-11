@@ -67,6 +67,22 @@ app.post('/games', (req, res) => {
         .send(createdGame)
 })
 
+// DELETE /games/:id - deletes a game
+app.delete('/games/:id', (req, res) => {
+    const id = parseInt(req.params.id, 10)
+    if (isNaN(id)) {
+        return res.status(400).send({ error: "Invalid ID format" })
+    }
+
+    const index = games.findIndex(g => g.id === id)
+    if (index === -1) {
+        return res.status(404).send({ error: "Game not found" })
+    }
+
+    games.splice(index, 1)
+    res.status(204).send()
+})
+
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 app.listen(port, () => {
