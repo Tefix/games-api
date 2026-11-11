@@ -28,6 +28,48 @@
           }
         }
       }
+    },
+    "/games/{id}": {
+      "get": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Get full details of a given game",
+        "description": "Returns a single game by its ID. Available to everyone.",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Game ID",
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Game details",
+            "schema": {
+              "$ref": "#/definitions/Game"
+            }
+          },
+          "400": {
+            "description": "Invalid ID format",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Game not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -51,6 +93,15 @@
         "price": {
           "type": "number",
           "example": 29.99
+        }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "example": "Game not found"
         }
       }
     }
