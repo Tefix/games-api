@@ -67,6 +67,39 @@ app.post('/games', (req, res) => {
         .send(createdGame)
 })
 
+// PUT /games/:id - updates a game
+app.put('/games/:id', (req, res) => {
+    const id = parseInt(req.params.id, 10)
+    if (isNaN(id)) {
+        return res.status(400).send({ error: "Invalid ID format" })
+    }
+
+    const game = games.find(g => g.id === id)
+    if (!game) {
+        return res.status(404).send({ error: "Game not found" })
+    }
+
+    const { name, price } = req.body || {}
+
+    if (!name || price === undefined || price === null) {
+        return res.status(400).send({ error: "One or more required fields are missing" })
+    }
+
+    if (typeof name !== 'string' || !name.trim() || typeof price !== 'number' || isNaN(price) || price < 0) {
+        return res.status(400).send({ error: "Invalid game parameter values" })
+    }
+
+    const gameExists = games.some(g => g.id !== id && g.name.toLowerCase() === name.trim().toLowerCase())
+    if (gameExists) {
+        return res.status(409).send({ error: "Game with the same title already exists" })
+    }
+
+    game.name = name.trim()
+    game.price = price
+
+    res.send(game)
+})
+
 // DELETE /games/:id - deletes a game
 app.delete('/games/:id', (req, res) => {
     const id = parseInt(req.params.id, 10)
