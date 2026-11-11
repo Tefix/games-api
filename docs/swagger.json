@@ -27,6 +27,55 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Add a new game",
+        "description": "Creates a new game. Game titles must be unique (case-insensitive).",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/GameInput"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Game created",
+            "headers": {
+              "Location": {
+                "type": "string",
+                "description": "URL of the created game"
+              }
+            },
+            "schema": {
+              "$ref": "#/definitions/Game"
+            }
+          },
+          "400": {
+            "description": "Missing fields or invalid values",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "409": {
+            "description": "Game with the same title already exists",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
       }
     },
     "/games/{id}": {
@@ -102,6 +151,24 @@
         "error": {
           "type": "string",
           "example": "Game not found"
+        }
+      }
+    },
+    "GameInput": {
+      "type": "object",
+      "required": [
+        "name",
+        "price"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Hades"
+        },
+        "price": {
+          "type": "number",
+          "minimum": 0,
+          "example": 24.5
         }
       }
     }
