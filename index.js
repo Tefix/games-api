@@ -23,6 +23,21 @@ app.get('/games', (req, res) => {
     res.send(games)
 })
 
+// GET /games/:id - public, returns full details of a given game
+app.get('/games/:id', (req, res) => {
+    const id = parseInt(req.params.id, 10)
+    if (isNaN(id)) {
+        return res.status(400).send({ error: "Invalid ID format" })
+    }
+
+    const game = games.find(g => g.id === id)
+    if (!game) {
+        return res.status(404).send({ error: "Game not found" })
+    }
+
+    res.send(game)
+})
+
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 app.listen(port, () => {
